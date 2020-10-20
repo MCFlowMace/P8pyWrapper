@@ -58,10 +58,10 @@ class RootFile(object):
         values = hist.values
         underflow = hist.underflows
         overflow = hist.overflows
-        xlabel = hist.xlabels
-        #ylabel = hist.GetYaxis().GetTitle() #ylabel seems to be non-existent
+        xlabel = hist._fXaxis._fTitle
+        ylabel = hist._fYaxis._fTitle
         title = hist.title
-        return DataContainer(edges=edges, hist=values, underflow=underflow, overflow=overflow, xlabel=xlabel, title=title)
+        return DataContainer(edges=edges, hist=values, underflow=underflow, overflow=overflow, xlabel=xlabel, ylabel=ylabel, title=title)
     
     def getHistogram2D(self, name):
         hist = self.f.get(name)
@@ -70,11 +70,11 @@ class RootFile(object):
             return None
         edges = hist.edges
         values = hist.values
-        xlabel = hist.xlabels
-        ylabel = hist.ylabels
-        #zlabel = hist.GetZaxis().GetTitle() #zlabel seems to be non-existent
+        xlabel = hist._fXaxis._fTitle
+        ylabel = hist._fYaxis._fTitle
+        zlabel = hist._fZaxis._fTitle #zlabel seems to be non-existent
         title = hist.title
-        return DataContainer(edges_x=edges[0], edges_y=edges[1], hist=values, xlabel=xlabel, ylabel=ylabel, title=title)
+        return DataContainer(edges_x=edges[0], edges_y=edges[1], hist=values, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel, title=title)
     
     def getHistogram(self, name):
         hist = self.f.get(name)
