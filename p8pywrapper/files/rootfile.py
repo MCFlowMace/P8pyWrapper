@@ -27,17 +27,65 @@
 import re
 import numpy as np
 import uproot
+import matplotlib.pyplot as plt
 
 class DataContainer(object):
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+            
+    def plot(self):
+        
+        fig, ax = plt.subplots()
+        self.plotTo(fig, ax)
+        plt.show()
+        
+    def _plotHist2D(self, fig, ax):
+        
+        xmin = self.edges_x[0]
+        xmax = self.edges_x[-1]
+        ymin = self.edges_y[0]
+        ymax = self.edges_y[-1]
+
+        im = ax.imshow(self.hist.transpose(), 
+                        extent=(xmin, xmax, ymin, ymax), 
+                        origin='lower', zorder=2)
+        cbar = fig.colorbar(im)
+
+        ax.set_aspect('equal')
+        ax.set_xlabel(self.xlabel)
+        ax.set_ylabel(self.ylabel)
+        ax.set_title(self.title)
+        cbar.ax.set_ylabel(self.zlabel)
+    
+    def _plotHist1D(self, ax):
+    
+        x = (self.edges[1:] + self.edges[:-1])/2
+        y = self.hist
+        ax.step(x,y)
+        ax.set_xlabel(self.xlabel)
+        ax.set_ylabel(self.ylabel)
+        ax.set_title(self.title)
+        
+    #gives the option of modifying the plot
+    def plotTo(self, fig, ax):
+        
+        if self.container=='TH1D':
+            self._plotHist1D(ax)
+            
+        elif self.container=='TH2D':
+            self._plotHist2D(fig, ax)
+            
+        else:
+            raise ValueError("Can only handle 1D and 2D histograms.")
+            
     
 class RootFile(object):
     def __init__(self, path):
         self.path = path
         self.f = uproot.open(path)
         
+    # Tree not included for now since my test file does not have one
     # ~ def getTree(self, name):
         # ~ tree = self.f.Get(name)
         # ~ array, labels = tree.AsMatrix(return_labels=True)
@@ -53,15 +101,17 @@ class RootFile(object):
         if not hist: 
             print("Histogram with name {name} not in file")
             return None
-        bins = hist.bins
         edges = hist.edges
         values = hist.values
         underflow = hist.underflows
         overflow = hist.overflows
-        xlabel = hist._fXaxis._fTitle
-        ylabel = hist._fYaxis._fTitle
-        title = hist.title
-        return DataContainer(edges=edges, hist=values, underflow=underflow, overflow=overflow, xlabel=xlabel, ylabel=ylabel, title=title)
+        xlabel = hist._fXaxis._fTitle.decode('utf-8')
+        ylabel = hist._fYaxis._fTitle.decode('utf-8')
+        title = hist.title.decode('utf-8')
+        return DataContainer(edges=edges, hist=values, 
+                                underflow=underflow, overflow=overflow, 
+                                xlabel=xlabel, ylabel=ylabel, 
+                                title=title, container='TH1D')
     
     def getHistogram2D(self, name):
         hist = self.f.get(name)
@@ -70,11 +120,14 @@ class RootFile(object):
             return None
         edges = hist.edges
         values = hist.values
-        xlabel = hist._fXaxis._fTitle
-        ylabel = hist._fYaxis._fTitle
-        zlabel = hist._fZaxis._fTitle #zlabel seems to be non-existent
-        title = hist.title
-        return DataContainer(edges_x=edges[0], edges_y=edges[1], hist=values, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel, title=title)
+        xlabel = hist._fXaxis._fTitle.decode('utf-8')
+        ylabel = hist._fYaxis._fTitle.decode('utf-8')
+        zlabel = hist._fZaxis._fTitle.decode('utf-8')
+        title = hist.title.decode('utf-8')
+        return DataContainer(edges_x=edges[0], edges_y=edges[1], 
+                                hist=values, xlabel=xlabel, 
+                                ylabel=ylabel, zlabel=zlabel, 
+                                title=title, container='TH2D')
     
     def getHistogram(self, name):
         hist = self.f.get(name)
