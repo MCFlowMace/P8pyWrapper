@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  __init__.py
+#  setup.py
 #  
 #  Authors Florian Thomas <fthomas@uni-mainz.de>
 #  
-#  Date 10/19/2020
+#  Date 10/20/2020
 #  
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -24,10 +24,28 @@
 #  
 #  
 
+import setuptools
 
-def main(args):
-    return 0
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
-if __name__ == '__main__':
-    import sys
-    sys.exit(main(sys.argv))
+setuptools.setup(
+    name="p8pywrapper",
+    version="0.0.1",
+    author="Florian Thomas",
+    author_email="fthomas@uni-mainz.de",
+    description="A wrapper for the P8 simulation chain",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/MCFlowMace/P8pyWrapper",
+    packages=setuptools.find_packages(),
+    install_requires=[
+        'numpy',
+        'uproot'
+    ],
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "Operating System :: OS Independent",
+    ],
+    python_requires='>=3.6',
+)
