@@ -5,7 +5,7 @@
 #  
 #  Authors Florian Thomas <fthomas@uni-mainz.de>
 #  
-#  Date 10/19/2020
+#  Date 10/20/2020
 #  
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,5 @@
 #  
 #  
 
-from . import files
-from . import inputs
-from . import utility
+from .plotwrapper import PlotWrapper
+from .datacontainer import DataContainer

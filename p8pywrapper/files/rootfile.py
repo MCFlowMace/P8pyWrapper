@@ -27,58 +27,8 @@
 import re
 import numpy as np
 import uproot
-import matplotlib.pyplot as plt
 
-class DataContainer(object):
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-            
-    def plot(self):
-        
-        fig, ax = plt.subplots()
-        self.plotTo(fig, ax)
-        plt.show()
-        
-    def _plotHist2D(self, fig, ax):
-        
-        xmin = self.edges_x[0]
-        xmax = self.edges_x[-1]
-        ymin = self.edges_y[0]
-        ymax = self.edges_y[-1]
-
-        im = ax.imshow(self.hist.transpose(), 
-                        extent=(xmin, xmax, ymin, ymax), 
-                        origin='lower', zorder=2)
-        cbar = fig.colorbar(im)
-
-        ax.set_aspect('equal')
-        ax.set_xlabel(self.xlabel)
-        ax.set_ylabel(self.ylabel)
-        ax.set_title(self.title)
-        cbar.ax.set_ylabel(self.zlabel)
-    
-    def _plotHist1D(self, ax):
-    
-        x = (self.edges[1:] + self.edges[:-1])/2
-        y = self.hist
-        ax.step(x,y)
-        ax.set_xlabel(self.xlabel)
-        ax.set_ylabel(self.ylabel)
-        ax.set_title(self.title)
-        
-    #gives the option of modifying the plot
-    def plotTo(self, fig, ax):
-        
-        if self.container=='TH1D':
-            self._plotHist1D(ax)
-            
-        elif self.container=='TH2D':
-            self._plotHist2D(fig, ax)
-            
-        else:
-            raise ValueError("Can only handle 1D and 2D histograms.")
-            
+from p8pywrapper.utility import DataContainer
     
 class RootFile(object):
     def __init__(self, path):
