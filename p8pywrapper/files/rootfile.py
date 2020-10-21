@@ -27,6 +27,7 @@
 import re
 import numpy as np
 import uproot
+import time
 
 from p8pywrapper.utility import DataContainer
     
@@ -96,6 +97,11 @@ class RootFile(object):
         else:
             raise ValueError("Can only handle 1D and 2D histograms.")
         return hist
+        
+    def getDataFast(self, name):
+        
+        hist=self.f.get(name)
+        return hist.values
     
     def get_pars_by_filename(self):
         find_pitch = re.findall("_Angle([\d\.]*)", self.path)

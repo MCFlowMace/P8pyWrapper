@@ -25,23 +25,12 @@
 #  
 
 import numpy as np
+import time
 
 from .rootfile import RootFile
 
 def filterfunc(key, literal, cycle='2'):
     return literal in key and key[-1]==cycle
-    
-def filterTSReal(key):
-    return filterfunc(key, 'histTSReal_')
-    
-def filterTSImag(key):
-    return filterfunc(key, 'histTSImag_')
-    
-def filterFFT(key):
-    return filterfunc(key, 'histFSfftw_')
-    
-def filterBeamforming(key):
-    return filterfunc(key, 'histAggGridPower_')
     
 def extractIndices(key):
     keySplit = key[:-2].split('_')
@@ -86,7 +75,7 @@ class KatydidP3File():
         data[timeslice, channel] = y
         
         for key in keysF:
-            x, y = self._inputFile.getHistogram(key).data()
+            y = self._inputFile.getDataFast(key)
             newTimeslice, channel = extractIndices(key)
             data[newTimeslice, channel] = y
         
@@ -97,3 +86,5 @@ class KatydidP3File():
         _, imag = self._load('histTSImag_')
         
         return times, real + 1.j*imag
+        
+
