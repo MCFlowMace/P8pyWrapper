@@ -44,7 +44,8 @@ class RootFile(object):
         # ~ return tree
     
     def keys(self, filtername=lambda x: True):
-        return self.f.keys(filtername=filtername)
+        keys = self.f.keys(filtername=filtername)
+        return [key.decode('utf-8') for key in keys]
     
     def getHistogram1D(self, name):
         hist = self.f.get(name)
