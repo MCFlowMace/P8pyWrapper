@@ -142,6 +142,6 @@ class KatydidP3File():
         
         return x, y, magnitude
         
-    def load(self):
+    def loadAll(self):
         
         return self.loadTS(), self.loadFFT(), self.loadAgg()
