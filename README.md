@@ -7,7 +7,7 @@ Run `pip install -e .` in the directory with setup.py.
 
 ## Usage example
 
-To load all data from a Phase III Katydid ROOT file you can do the following:
+To load all data from a Phase III Katydid ROOT file as numpy arrays you can do the following:
 
 ```python
 from p8pywrapper.files import KatydidP3File
