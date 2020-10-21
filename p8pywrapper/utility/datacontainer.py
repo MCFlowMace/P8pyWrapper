@@ -37,11 +37,11 @@ class DataContainer(object):
         #questionable design choice
         if self.container=='TH1D':
             
-            return self.xvalues, self.yvalues
+            return self.yvalues, self.xvalues, None
             
         elif self.container=='TH2D':
             
-            return self.xvalues, self.yvalues, self.zvalues
+            return self.zvalues, self.xvalues, self.yvalues
             
         else:
             

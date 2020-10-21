@@ -32,6 +32,13 @@ from .rootfile import RootFile
 def filterfunc(key, literal, cycle='2'):
     return literal in key and key[-1]==cycle
     
+def filteredKeys(keys, literal):
+    f = lambda key: filterfunc(key, literal)
+        
+    return [key for key in filter(f, keys)]
+    
+#not nice to have two versions of both but that prevents 
+#using a slowing if or loop
 def extractIndices(key):
     keySplit = key[:-2].split('_')
     timeslice = int(keySplit[1])
@@ -49,6 +56,20 @@ def extractDims(keys):
         
     return totalTimeslices+1, totalChannels+1
     
+def extractIndex(key):
+    keySplit = key[:-2].split('_')
+    timeslice = int(keySplit[1])
+    return timeslice
+
+def extractDimension(keys):
+    
+    totalTimeslices=-1
+    for key in keys:
+        timeslice = extractIndex(key)
+        totalTimeslices = max(timeslice, totalTimeslices)
+        
+    return totalTimeslices+1
+    
 #functionality can be extended if required
 class KatydidP3File():
     
@@ -57,34 +78,70 @@ class KatydidP3File():
         self._inputFile = RootFile(filename)
         self._keys = self._inputFile.keys()
     
-    def _load(self, literal):
-        
-        f = lambda key: filterfunc(key, literal)
-        
-        keysF = [key for key in filter(f, self._keys)]
+    def _load1D(self, keysF):
         
         nTimeslices, nChannels = extractDims(keysF)
-        x, y = self._inputFile.getHistogram(keysF[0]).data()
+        value, x, y = self._inputFile.getHistogram(keysF[0]).data()
         timeslice, channel = extractIndices(keysF[0])
         
         nBins = x.shape[0]
         
         data = np.empty(shape=(nTimeslices, nChannels, nBins), 
-                        dtype=y.dtype)
+                        dtype=value.dtype)
 
-        data[timeslice, channel] = y
+        data[timeslice, channel] = value
         
-        for key in keysF:
-            y = self._inputFile.getDataFast(key)
-            newTimeslice, channel = extractIndices(key)
-            data[newTimeslice, channel] = y
+        for key in keysF[1:]:
+            timeslice, channel = extractIndices(key)
+            data[timeslice, channel] = self._inputFile.getDataFast(key)
         
         return x, data
+        
+    def _load2D(self, keysF):
+        
+        nTimeslices = extractDimension(keysF)
+        value, x, y = self._inputFile.getHistogram(keysF[0]).data()
+        timeslice = extractIndex(keysF[0])
+        
+        nGridx = x.shape[0]
+        nGridy = y.shape[0]
+        
+        data = np.empty(shape=(nTimeslices, nGridx, nGridy), 
+                        dtype=value.dtype)
+
+        data[timeslice] = value
+        
+        for key in keysF[1:]:
+            timeslice = extractIndex(key)
+            data[timeslice] = self._inputFile.getDataFast(key)
+        
+        return x, y, data
     
     def loadTS(self):
-        times, real = self._load('histTSReal_')
-        _, imag = self._load('histTSImag_')
+        
+        keysReal = filteredKeys(self._keys, 'histTSReal_')
+        keysImag = filteredKeys(self._keys, 'histTSImag_')
+        
+        times, real = self._load1D(keysReal)
+        _, imag = self._load1D(keysImag)
         
         return times, real + 1.j*imag
         
-
+    def loadFFT(self):
+        
+        keysFFT = filteredKeys(self._keys, 'histFSfftw_')
+        
+        frequency, magnitude = self._load1D(keysFFT)
+        return frequency, magnitude
+        
+    def loadAgg(self):
+        
+        keysAgg = filteredKeys(self._keys, 'histAggGridPower_')
+        
+        x, y, magnitude = self._load2D(keysAgg)
+        
+        return x, y, magnitude
+        
+    def load(self):
+        
+        return self.loadTS(), self.loadFFT(), self.loadAgg()
