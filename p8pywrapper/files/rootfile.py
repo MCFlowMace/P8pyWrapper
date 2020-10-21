@@ -43,8 +43,8 @@ class RootFile(object):
         # ~ tree = np.array([tuple(line) for line in array], dtype=dtype)
         # ~ return tree
     
-    def keys(self):
-        return self.f.keys()
+    def keys(self, filtername=lambda x: True):
+        return self.f.keys(filtername=filtername)
     
     def getHistogram1D(self, name):
         hist = self.f.get(name)
@@ -52,13 +52,14 @@ class RootFile(object):
             print("Histogram with name {name} not in file")
             return None
         edges = hist.edges
+        xvalues = (edges[1:] + edges[:-1])/2
         values = hist.values
         underflow = hist.underflows
         overflow = hist.overflows
         xlabel = hist._fXaxis._fTitle.decode('utf-8')
         ylabel = hist._fYaxis._fTitle.decode('utf-8')
         title = hist.title.decode('utf-8')
-        return DataContainer(edges=edges, hist=values, 
+        return DataContainer(edges=edges, xvalues=xvalues, yvalues=values, 
                                 underflow=underflow, overflow=overflow, 
                                 xlabel=xlabel, ylabel=ylabel, 
                                 title=title, container='TH1D')
@@ -69,13 +70,16 @@ class RootFile(object):
             print("Histogram not in file.")
             return None
         edges = hist.edges
+        xvalues = (edges[0][1:] + edges[0][:-1])/2
+        yvalues = (edges[1][1:] + edges[1][:-1])/2
         values = hist.values
         xlabel = hist._fXaxis._fTitle.decode('utf-8')
         ylabel = hist._fYaxis._fTitle.decode('utf-8')
         zlabel = hist._fZaxis._fTitle.decode('utf-8')
         title = hist.title.decode('utf-8')
         return DataContainer(edges_x=edges[0], edges_y=edges[1], 
-                                hist=values, xlabel=xlabel, 
+                                xvalues=xvalues, yvalues=yvalues,
+                                zvalues=values, xlabel=xlabel, 
                                 ylabel=ylabel, zlabel=zlabel, 
                                 title=title, container='TH2D')
     

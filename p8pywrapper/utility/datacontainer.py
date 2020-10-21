@@ -26,9 +26,26 @@ import matplotlib.pyplot as plt
 from .plotwrapper import PlotWrapper
 
 class DataContainer(object):
+    
+    #interesting idea but maybe inheritance is better choice long-term?
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+            
+    def data(self):
+        
+        #questionable design choice
+        if self.container=='TH1D':
+            
+            return self.xvalues, self.yvalues
+            
+        elif self.container=='TH2D':
+            
+            return self.xvalues, self.yvalues, self.zvalues
+            
+        else:
+            
+            return None
     
     #not sure yet if plot functionality should stay in the class like that        
     def plot(self):
@@ -43,7 +60,7 @@ class DataContainer(object):
         ymin = self.edges_y[0]
         ymax = self.edges_y[-1]
 
-        im = ax.imshow(self.hist.transpose(), 
+        im = ax.imshow(self.zvalues.transpose(), 
                         extent=(xmin, xmax, ymin, ymax), 
                         origin='lower', zorder=2)
         cbar = fig.colorbar(im)
@@ -56,9 +73,7 @@ class DataContainer(object):
     
     def _plotHist1D(self, ax):
     
-        x = (self.edges[1:] + self.edges[:-1])/2
-        y = self.hist
-        ax.step(x,y)
+        ax.step(self.xvalues,self.yvalues)
         ax.set_xlabel(self.xlabel)
         ax.set_ylabel(self.ylabel)
         ax.set_title(self.title)
