@@ -26,3 +26,4 @@
 
 #from .rootfile import RootFile
 from .katydidP3 import KatydidP3File
+from .locustP3 import LocustP3File
