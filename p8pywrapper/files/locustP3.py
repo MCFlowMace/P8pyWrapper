@@ -33,7 +33,7 @@ dft_window = 8192
 
 def applyDFT(data, dt):
     
-    dataFreq = fftshift(fft(data, axis=-1),axes=-1)*np.sqrt(2/dft_window)
+    dataFreq = fftshift(fft(data, axis=-1),axes=-1)*np.sqrt(1/dft_window)
     frequency = fftshift(fftfreq(dft_window, d=dt))#+100e6
     
     return frequency, dataFreq
@@ -47,7 +47,7 @@ class LocustP3File():
         
     def _getAttributes(self):
         attr = self._inputfile['streams']['stream0'].attrs
-        self.sr = attr['acquisition_rate']
+        self.sr = attr['acquisition_rate']*1e6
         self._bitDepth = attr['bit_depth']
         self.nChannels = attr['n_channels']
         self._recordSize = attr['record_size']

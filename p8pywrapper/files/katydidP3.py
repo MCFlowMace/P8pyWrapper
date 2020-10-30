@@ -136,7 +136,7 @@ class KatydidP3File():
         
     def loadAgg(self):
         
-        keysAgg = filteredKeys(self._keys, 'histAggGridPower_')
+        keysAgg = filteredKeys(self._keys, 'histAggGrid')
         
         x, y, magnitude = self._load2D(keysAgg)
         
