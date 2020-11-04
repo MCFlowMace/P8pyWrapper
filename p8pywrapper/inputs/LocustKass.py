@@ -31,6 +31,10 @@ import time
 from shutil import copyfile
 import os
 
+import re
+
+#https://stackoverflow.com/questions/38853644/python-xml-parseerror-junk-after-document-element
+
 def getRandSeed():
     
     t = int( time.time() * 1000.0 )
@@ -41,10 +45,32 @@ def getRandSeed():
              
     return seed
 
+kassConfigDict = {'seedKass': '$SEED',
+                   'tMax': '$TMAX',
+                   'xMin': '$XMIN',
+                   'yMin': '$YMIN',
+                   'xMax': '$XMAX',
+                   'yMax': '$YMAX',
+                   'zMin': '$ZMIN',
+                   'zMax': '$ZMAX',
+                   'pitchMin': '$PITCHMIN',
+                   'pitchMax': '$PITCHMAX',
+                   'geometry': '$GEOMETRY' }
     
 class KassConfig:
     
-    def __init__(self):
+    def __init__(self,
+                    seedKass=None,
+                    tMax = None,
+                    xMin = None,
+                    xMax = None,
+                    yMin = None,
+                    yMax = None,
+                    zMin = None,
+                    zMax = None,
+                    pitchMin = None,
+                    pitchMax = None,
+                    geometry = None):
         
         self.seedKass = seedKass
         self.tMax = tMax
@@ -56,6 +82,26 @@ class KassConfig:
         self.zMax = zMax
         self.pitchMin = pitchMin
         self.pitchMax = pitchMax
+        self.geometry = geometry
+        
+        self._setRandomSeed()
+        
+    def _setRandomSeed(self):
+        
+        if not self.seedKass:
+            self.seedKass = getRandSeed()
+            
+    def makeKassConfig(self, inPath, outPath):
+        
+        with open(inPath) as conf:
+            xml = conf.read()
+        
+        vals = self.__dict__
+        for key in vals:
+            xml=xml.replace(kassConfigDict[key], '"'+str(vals[key])+'"')
+            
+        with open(outPath, 'w') as newConf:
+            newConf.write(xml)
         
 sSim = 'simulation'
 sArray = 'array-signal'
@@ -160,7 +206,10 @@ class LocustConfig:
         with open(outPath, 'w') as outFile:
             json.dump(config, outFile, indent=2)
         
-        
+
+def getNoisePower(snr):
+    return 0
+
 class SimConfig:
     
     def __init__(self, 
@@ -181,15 +230,16 @@ class SimConfig:
                     seedLocust= None,
                     tfReceiverBinWidth = None, 
                     tfReceiverFilename = None,
-                    tMax = None,
-                    xMin = None,
-                    xMax = None,
-                    yMin = None,
-                    yMax = None,
-                    zMin = None,
-                    zMax = None,
-                    pitchMin = None,
-                    pitchMax = None):
+                    tMax=0.5e-4,
+                    xMin=0.0,
+                    xMax=0.0,
+                    yMin=0.0,
+                    yMax=0.0,
+                    zMin=0.0,
+                    zMax=0.0,
+                    pitchMin=90.0,
+                    pitchMax=90.0,
+                    geometry="/tmp/hexbug/Phase3/Trap/FreeSpaceGeometry_V00_00_04.xml"):
        
         
         
@@ -197,32 +247,56 @@ class SimConfig:
         self.locustTemplate = locustTemplate
         self.kassTemplate = kassTemplate
         
-    def syncLocustConfig(self, locustFile):
-        
-        self.locustTemplate = locustFile
-        
-        with open(locustFile, 'r') as infile:
-            config = json.load(infile)
-            
-            
-        
-    def syncKassConfig(self):
-        
-
-            
-        if not seedLocust:
-            self.seedLocust = getRandSeed()
+        noisePower = getNoisePower(snr)
+        self.locustConfig = LocustConfig(nChannels,
+                                        noisePower,
+                                        vRange,
+                                        vOffset,
+                                        eggPath,
+                                        recordSize,
+                                        loFrequency,
+                                        elementsPerStrip,
+                                        nSubarrays,
+                                        zShift,
+                                        elementSpacing,
+                                        seedLocust,
+                                        tfReceiverBinWidth,
+                                        tfReceiverFilename)
+                                        
+        self.kassConfig = KassConfig(seedKass,
+                                        tMax,
+                                        xMin,
+                                        xMax,
+                                        yMin,
+                                        yMax,
+                                        zMin,
+                                        zMax,
+                                        pitchMin,
+                                        pitchMax,
+                                        geometry)
     
     def toJson(self, filename):
         
         with open(filename, 'w') as outfile:
-            json.dump(self.__dict__, outfile, indent=2)
+            json.dump(self.__dict__, outfile, indent=2, 
+                            default=lambda x: x.__dict__)
             
     @classmethod
     def fromJson(cls, filename):
         
         instance = cls()
-        with open(filename, 'r') as infile:
-            instance.__dict__ = json.load(infile)
+        instance.locustConfig = LocustConfig()
+        instance.kassConfig = KassConfig()
         
+        with open(filename, 'r') as infile:
+            config = json.load(infile)
+            instance.locustTemplate = config['locustTemplate']
+            instance.kassTemplate = config['kassTemplate']
+            instance.locustConfig.__dict__ = config['locustConfig']
+            instance.kassConfig.__dict__ = config['kassConfig']
+            
         return instance
+        
+    def makeConfig(self, filename):
+        self.locustConfig.makeLocustConfig(self.locustTemplate, filename+'locust.json')
+        self.kassConfig.makeKassConfig(self.kassTemplate, filename+'kass.xml')
