@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  LocustKass.py
+#  config.py
 #  
 #  Authors Florian Thomas <fthomas@uni-mainz.de>
 #  
@@ -31,9 +31,6 @@ import time
 from shutil import copyfile
 import os
 
-import re
-
-#https://stackoverflow.com/questions/38853644/python-xml-parseerror-junk-after-document-element
 
 def getRandSeed():
     

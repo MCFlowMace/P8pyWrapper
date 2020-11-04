@@ -23,3 +23,6 @@
 #  MA 02110-1301, USA.
 #  
 #  
+
+from .config import SimConfig
+from .locust import Locust
