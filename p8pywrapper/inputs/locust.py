@@ -46,16 +46,19 @@ import os
 
 class Locust:
     
-    def __init__(self, workingdir, container='project8/p8compute',
-                        locustversion='v2.1.2', 
-                        p8computeversion='v0.10.1'):
+    def __init__(self, workingdir, hexbugdir,
+                container='project8/p8compute',
+                locustversion='v2.1.2', 
+                p8computeversion='v0.10.1'):
                             
         self.workingdir=workingdir+'/'
+        self.outputdir = self.workingdir+'output/'
         self.locustversion=locustversion
         self.p8computeversion=p8computeversion
         self.p8locustdir='/usr/local/p8/locust/'+locustversion
         self.p8computedir='/usr/local/p8/compute/'+p8computeversion
         self.container=container
+        self.hexbugdir=hexbugdir
         
         self._genCommandScript()
         
@@ -65,10 +68,15 @@ class Locust:
          #   output = call_locust(locust_config_path)
         #except subprocess.CalledProcessError as e:
         
-        config.makeConfig(filename)
-        config.toJson(filename+'config.json')
+        filenamelocust = filename+'locust.json'
+        filenamekass = filename+'kass.xml'
+        config.setXml('/tmp/output/'+filenamekass)
+        config.setEgg(self.p8locustdir+'/output/'+filename+'.egg')
+        config.makeConfig(self.outputdir+filenamelocust, 
+                            self.outputdir+filenamekass)
+        config.toJson(self.outputdir+filename+'config.json')
         
-        cmd = self._assembleCommand(filename)
+        cmd = self._assembleCommand('/tmp/output/'+filename)
         
         print(cmd)
         
@@ -82,11 +90,13 @@ class Locust:
         cmd += self.workingdir
         cmd += '/output:'
         cmd += self.p8locustdir
-        cmd += '/output '
+        cmd += '/output -v '
+        cmd += self.hexbugdir
+        cmd += ':/hexbug '
         cmd += self.container
-        cmd += ' /bin/bash -c /tmp/locustcommands.sh '
+        cmd += ' /bin/bash -c "/tmp/locustcommands.sh '
         cmd += configFile
-        cmd += 'locust.json'
+        cmd += 'locust.json"'
         
         return cmd
         

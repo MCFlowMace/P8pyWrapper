@@ -67,7 +67,7 @@ class KassConfig:
                     zMax = None,
                     pitchMin = None,
                     pitchMax = None,
-                    geometry = None):
+                    geometry = 'FreeSpaceGeometry_V00_00_04.xml'):
         
         self.seedKass = seedKass
         self.tMax = tMax
@@ -79,7 +79,8 @@ class KassConfig:
         self.zMax = zMax
         self.pitchMin = pitchMin
         self.pitchMax = pitchMax
-        self.geometry = geometry
+        self.geometry = '/hexbug/Phase3/Trap/'+geometry
+        
         
         self._setRandomSeed()
         
@@ -119,7 +120,8 @@ locustConfigDict = {'nChannels': [sSim, 'n-channels'],
                     'seedLocust': [sNoise,'random-seed'],
                     'tfReceiverBinWidth': [sArray, 'tf-receiver-bin-width'],
                     'tfReceiverFilename': [sArray, 'tf-receiver-filename'],
-                    'noisePower': [sNoise, 'noise-floor-psd']}
+                    'noisePower': [sNoise, 'noise-floor-psd'],
+                    'xmlFile': [sArray, 'xml-filename']}
     
 def getConfigFromFile(locustFile):
     with open(locustFile, 'r') as infile:
@@ -141,7 +143,7 @@ class LocustConfig:
                     elementSpacing=None,
                     seedLocust=None,
                     tfReceiverBinWidth=None,
-                    tfReceiverFilename=None):
+                    tfReceiverFilename='FiveSlotTF.txt'):
         
         self.nChannels = nChannels
         self.noisePower = noisePower
@@ -156,7 +158,8 @@ class LocustConfig:
         self.elementSpacing = elementSpacing
         self.seedLocust = seedLocust
         self.tfReceiverBinWidth = tfReceiverBinWidth
-        self.tfReceiverFilename = tfReceiverFilename
+        self.tfReceiverFilename = '/hexbug/Phase3/TransferFunctions/'+tfReceiverFilename
+        self.xmlFile=''
         
         self._setRandomSeed()
         
@@ -226,7 +229,7 @@ class SimConfig:
                     seedKass = None,
                     seedLocust= None,
                     tfReceiverBinWidth = None, 
-                    tfReceiverFilename = None,
+                    tfReceiverFilename = 'FiveSlotTF.txt',
                     tMax=0.5e-4,
                     xMin=0.0,
                     xMax=0.0,
@@ -236,7 +239,7 @@ class SimConfig:
                     zMax=0.0,
                     pitchMin=90.0,
                     pitchMax=90.0,
-                    geometry="/tmp/hexbug/Phase3/Trap/FreeSpaceGeometry_V00_00_04.xml"):
+                    geometry='FreeSpaceGeometry_V00_00_04.xml'):
        
         
         
@@ -271,6 +274,12 @@ class SimConfig:
                                         pitchMin,
                                         pitchMax,
                                         geometry)
+                                        
+    def setXml(self, name):
+        self.locustConfig.xmlFile=name
+        
+    def setEgg(self, name):
+        self.locustConfig.eggPath=name
     
     def toJson(self, filename):
         
@@ -294,6 +303,6 @@ class SimConfig:
             
         return instance
         
-    def makeConfig(self, filename):
-        self.locustConfig.makeLocustConfig(self.locustTemplate, filename+'locust.json')
-        self.kassConfig.makeKassConfig(self.kassTemplate, filename+'kass.xml')
+    def makeConfig(self, filenamelocust, filenamekass):
+        self.locustConfig.makeLocustConfig(self.locustTemplate, filenamelocust)
+        self.kassConfig.makeKassConfig(self.kassTemplate, filenamekass)
