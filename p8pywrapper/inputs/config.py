@@ -239,7 +239,7 @@ class SimConfig:
                     zMax=0.0,
                     pitchMin=90.0,
                     pitchMax=90.0,
-                    geometry='FreeSpaceGeometry_V00_00_04.xml'):
+                    geometry='FreeSpaceGeometry_V00_00_10.xml'):
        
         
         
@@ -286,6 +286,10 @@ class SimConfig:
         with open(filename, 'w') as outfile:
             json.dump(self.__dict__, outfile, indent=2, 
                             default=lambda x: x.__dict__)
+                            
+    def toDict(self):
+        
+        return {**self.locustConfig.__dict__, **self.kassConfig.__dict__}
             
     @classmethod
     def fromJson(cls, filename):

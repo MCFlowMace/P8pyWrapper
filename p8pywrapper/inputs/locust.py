@@ -28,22 +28,6 @@ from .config import SimConfig
 import subprocess
 import os
 
-"""
-    cmd_str = "{} config={}".format(locust_binary_path,locust_config_path)
-    print(cmd_str)
-    output = subprocess.check_output(cmd_str, shell=True, stderr=subprocess.STDOUT)
-    
-    
-    try: # Locust
-        output = call_locust(locust_config_path)
-        print('\tCreated: {}'.format(locust_egg_wnoise))
-    except subprocess.CalledProcessError as e:
-        print("Error: {}".format(e.output))
-        return
-    end_time = time.time()
-    print('\tLocust simulation time was {}s'.format(end_time-start_time))
-"""
-
 class Locust:
     
     def __init__(self, workingdir, hexbugdir,
@@ -81,6 +65,12 @@ class Locust:
         print(cmd)
         
         os.system(cmd)
+        
+        deleteCmd = 'rm -f ' + self.outputdir+filenamelocust
+        deleteCmd += ' ' + self.outputdir+filenamekass
+        deleteCmd += ' ' + self.outputdir+'Phase3Seed*Output.root'
+        
+        os.system(deleteCmd)
 
         
     def _assembleCommand(self, configFile):
@@ -112,8 +102,3 @@ class Locust:
             
         os.system('chmod +x '+self.workingdir+'locustcommands.sh')
         
-
-
-# Start the container, mount the shared directory(ies), and execute the Locust commands:
-#docker run -it --rm -v workingdir:/tmp -v workingdir/output:${p8locustdir}/output project8/p8compute /bin/bash -c /tmp/locust-tutorial/scripts/locustcommands.sh
-

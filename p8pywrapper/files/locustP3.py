@@ -28,6 +28,8 @@ import numpy as np
 import h5py
 from scipy.fft import fft, fftshift, fftfreq
 
+from p8pywrapper.inputs import SimConfig
+
 int_max = {8:255, 16:65535}
 dft_window = 8192
 
@@ -37,8 +39,19 @@ def applyDFT(data, dt):
     frequency = fftshift(fftfreq(dft_window, d=dt))#+100e6
     
     return frequency, dataFreq
+    
+class LocustResult:
+    
+    def __init__(self, filename):
+        
+        self.eggfile = LocustP3File(filename+'.egg')
+        self.config = SimConfig.fromJson(filename+'config.json')
+        
+    def get(self):
+        
+        return self.eggfile, self.config.toDict()
 
-class LocustP3File():
+class LocustP3File:
     
     def __init__(self, filename):
         
