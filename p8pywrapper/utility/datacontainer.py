@@ -23,7 +23,7 @@
 #  
 
 import matplotlib.pyplot as plt
-from .plotwrapper import PlotWrapper
+from .plotting import PlotWrapper
 
 class DataContainer(object):
     

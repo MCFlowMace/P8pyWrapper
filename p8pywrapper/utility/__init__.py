@@ -24,5 +24,5 @@
 #  
 #  
 
-from .plotwrapper import PlotWrapper
+from .plotting import PlotWrapper, plotBeamforming, plotSpectrum
 from .datacontainer import DataContainer
