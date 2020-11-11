@@ -208,7 +208,13 @@ class LocustConfig:
         
 
 def getNoisePower(snr):
-    return 0
+    
+    if snr==0:
+        return 0
+        
+    signalPower = 4e-15 #approximate power for electron in center of trap with 60 channels
+    noisePower = signalPower/snr
+    return noisePower
 
 class SimConfig:
     
