@@ -41,6 +41,9 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'numpy',
+        'scipy',
+        'matplotlib',
+        'h5py',
         'uproot'
     ],
     classifiers=[
