@@ -27,6 +27,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+def run_from_ipython():
+    try:
+        __IPYTHON__
+        return True
+    except NameError:
+        return False
+
 class PlotWrapper:
 
     def __init__(self):
@@ -37,6 +44,7 @@ class PlotWrapper:
     def add(self, f, *args):
 
         if not self.initialized:
+            self.initialized = True
             self.fig, self.ax = plt.subplots()
             
         f(self.fig, self.ax, *args)
@@ -44,7 +52,10 @@ class PlotWrapper:
     def finish(self, name=''):
 
         if name=='':
-            display(self.fig)
+            if run_from_ipython():
+                display(self.fig)
+            else:
+                plt.show()
         else:
             self.fig.savefig(name)
         
@@ -53,7 +64,7 @@ class PlotWrapper:
         
     def save(self, name):
         
-        self.fig.savefig(name)
+        self.fig.savefig(name, dpi=600)
 
     @classmethod
     def plot(cls, f, *args, name=''):
