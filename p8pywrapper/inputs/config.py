@@ -216,7 +216,7 @@ def getNoisePower(snr):
         
     signalPower = 4e-17 #just a guess for the power #approximate power for electron in center of trap with 60 channels
     resistance = 50
-    noisePower = signalPower/snr*resistance*8192/200e6 #not sure if correct + specific for DFT window length 8192 and SR 200MHz
+    noisePower = signalPower/snr*resistance/200e6#8192/200e6 #not sure if correct + specific for DFT window length 8192 and SR 200MHz
     return noisePower
 
 class SimConfig:
