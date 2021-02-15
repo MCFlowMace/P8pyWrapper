@@ -34,8 +34,11 @@ int_max = {8:255, 16:65535}
 dft_window = 8192
 
 def applyDFT(data, dt):
+        
+    mean = np.mean(data, axis=-1)
     
-    dataFreq = fftshift(fft(data, axis=-1),axes=-1)*np.sqrt(1/dft_window)
+    dataFreq = fftshift(fft(data-mean.reshape((data.shape[0],data.shape[1],1)), axis=-1),axes=-1)*np.sqrt(1/dft_window)
+    #dataFreq = fftshift(fft(data, axis=-1),axes=-1)*np.sqrt(1/dft_window)
     frequency = fftshift(fftfreq(dft_window, d=dt))#+100e6
     
     return frequency, dataFreq
