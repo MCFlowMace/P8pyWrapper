@@ -52,7 +52,8 @@ kassConfigDict = {'seedKass': '$SEED',
                    'zMax': '$ZMAX',
                    'pitchMin': '$PITCHMIN',
                    'pitchMax': '$PITCHMAX',
-                   'geometry': '$GEOMETRY' }
+                   'geometry': '$GEOMETRY',
+                   'outPath': '$OUTPATH' }
     
 class KassConfig:
     
@@ -67,7 +68,8 @@ class KassConfig:
                     zMax = None,
                     pitchMin = None,
                     pitchMax = None,
-                    geometry = 'FreeSpaceGeometry_V00_00_04.xml'):
+                    geometry = 'FreeSpaceGeometry_V00_00_04.xml',
+                    locustVersion ='v2.1.6'):
         
         self.seedKass = seedKass
         self.tMax = tMax
@@ -80,6 +82,7 @@ class KassConfig:
         self.pitchMin = pitchMin
         self.pitchMax = pitchMax
         self.geometry = '/hexbug/Phase3/Trap/'+geometry
+        self.outPath =  '/usr/local/p8/locust/'+ locustVersion +'/output'
         
         
         self._setRandomSeed()
@@ -121,6 +124,7 @@ locustConfigDict = {'nChannels': [sSim, 'n-channels'],
                     'tfReceiverBinWidth': [sArray, 'tf-receiver-bin-width'],
                     'tfReceiverFilename': [sArray, 'tf-receiver-filename'],
                     'noisePower': [sNoise, 'noise-floor-psd'],
+                    'noiseTemp' : [sNoise, 'noise-temperature'],
                     'xmlFile': [sArray, 'xml-filename']}
     
 def getConfigFromFile(locustFile):
@@ -132,6 +136,7 @@ class LocustConfig:
     def __init__(self, 
                     nChannels=None,
                     noisePower=None,
+                    noiseTemp=None,
                     vRange=None,
                     vOffset=None,
                     eggPath=None,
@@ -147,6 +152,7 @@ class LocustConfig:
         
         self.nChannels = nChannels
         self.noisePower = noisePower
+        self.noiseTemp = noiseTemp
         self.vRange = vRange
         self.vOffset = vOffset
         self.eggPath = eggPath
@@ -191,17 +197,26 @@ class LocustConfig:
                 configDict[jsonKeys[0]][jsonKeys[1]] = vals[key]
         
         return configDict
+        
+    def _handleConflicts(self, config):
+        
+        if self.noiseTemp and self.noisePower:
+            self.noisePower = None
+            config[sNoise].pop(locustConfigDict['noisePower'][1])
+            
+        if self.noisePower!=0 or self.noiseTemp!=0:
+            config[sGen].insert(-1,'gaussian-noise')
             
     def makeLocustConfig(self, inPath, outPath):
         
         config = getConfigFromFile(inPath) #self.syncConfig(inPath)
         #get missing parameters from config template
         self._finalizeConfig(config)
+    
         #overwrite config with parameters from self
         config = self._overwriteJson(config)
         
-        if self.noisePower!=0:
-            config[sGen].insert(-1,'gaussian-noise')
+        self._handleConflicts(config)
                 
         with open(outPath, 'w') as outFile:
             json.dump(config, outFile, indent=2)
@@ -222,8 +237,9 @@ def getNoisePower(snr):
 class SimConfig:
     
     def __init__(self, 
+                    locustVersion,
                     nChannels=None,
-                    snr = None,
+                    noiseTemp=None,
                     vRange = None,
                     vOffset = None,
                     eggPath = None,
@@ -256,9 +272,10 @@ class SimConfig:
         self.locustTemplate = locustTemplate
         self.kassTemplate = kassTemplate
         
-        noisePower = getNoisePower(snr)
+        #noisePower = getNoisePower(snr)
         self.locustConfig = LocustConfig(nChannels,
-                                        noisePower,
+                                        None, # noise-psd not used
+                                        noiseTemp,
                                         vRange,
                                         vOffset,
                                         eggPath,
@@ -282,7 +299,8 @@ class SimConfig:
                                         zMax,
                                         pitchMin,
                                         pitchMax,
-                                        geometry)
+                                        geometry,
+                                        locustVersion)
                                         
     def setXml(self, name):
         self.locustConfig.xmlFile=name
@@ -303,7 +321,7 @@ class SimConfig:
     @classmethod
     def fromJson(cls, filename):
         
-        instance = cls()
+        instance = cls(locustVersion='v2.1.6')
         instance.locustConfig = LocustConfig()
         instance.kassConfig = KassConfig()
         
